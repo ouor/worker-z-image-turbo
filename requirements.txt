@@ -1,0 +1,4 @@
+stable-diffusion-cpp-python
+huggingface_hub
+runpod
+Pillow
