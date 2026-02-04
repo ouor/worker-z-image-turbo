@@ -4,7 +4,6 @@ from io import BytesIO
 
 from stable_diffusion_cpp import StableDiffusion
 import runpod
-from runpod.serverless.utils import rp_upload, rp_cleanup
 from runpod.serverless.utils.rp_validator import validate
 
 from schemas import INPUT_SCHEMA
@@ -35,29 +34,9 @@ class ModelHandler:
 
 MODELS = ModelHandler()
 
-def _save_and_upload_images(images, job_id):
-    os.makedirs(f"/{job_id}", exist_ok=True)
-    image_urls = []
-    
-    # images is a list of PIL Images
-    for index, image in enumerate(images):
-        image_path = os.path.join(f"/{job_id}", f"{index}.png")
-        image.save(image_path)
-
-        if os.environ.get("BUCKET_ENDPOINT_URL", False):
-            image_url = rp_upload.upload_image(job_id, image_path)
-            image_urls.append(image_url)
-        else:
-            with open(image_path, "rb") as image_file:
-                image_data = base64.b64encode(image_file.read()).decode("utf-8")
-                image_urls.append(f"data:image/png;base64,{image_data}")
-
-    rp_cleanup.clean([f"/{job_id}"])
-    return image_urls
-
 def generate_image(job):
     """
-    Generate an image using Z-Image-Turbo via stable-diffusion-cpp-python
+    Generate a single image using Z-Image-Turbo and return base64 data
     """
     job_input = job["input"]
 
@@ -75,37 +54,35 @@ def generate_image(job):
     print(f"Generating image with prompt: {job_input['prompt']}")
     
     try:
-        # Generate image using the high-level API
+        # Generate image (always returns a list, we take the first one)
         output_images = MODELS.sd.generate_image(
             prompt=job_input["prompt"],
             height=job_input["height"],
             width=job_input["width"],
-            step=job_input.get("num_inference_steps", 10), # Default to fewer steps for Turbo models if not specified
-            cfg_scale=job_input.get("guidance_scale", 1.0), # Recommended 1.0 for Z-Image
+            step=job_input["num_inference_steps"],
+            cfg_scale=job_input["guidance_scale"],
             seed=job_input["seed"],
         )
         
-        # stable-diffusion-cpp-python returns a list of PIL Images
+        if not output_images:
+            raise Exception("No image generated")
+            
+        image = output_images[0]
         
+        # Convert PIL Image to Base64
+        buffered = BytesIO()
+        image.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        
+        return {
+            "mime_type": "image/png",
+            "data": img_str
+        }
+
     except Exception as err:
         print(f"[ERROR] Error in generation pipeline: {err}")
         return {
-            "error": f"Unexpected error: {err}",
-            # "refresh_worker": True, # Uncomment if we need to restart worker on error
+            "error": f"Unexpected error: {err}"
         }
-
-    image_urls = _save_and_upload_images(output_images, job["id"])
-
-    # Extract the used seed from the first image info if available, or pass back input seed
-    # stable-diffusion-cpp-python objects might have an .info attribute, but for safety we return input seed if -1 was not unresolved
-    # Ideally we should get the effective seed. For now returning input seed.
-    
-    results = {
-        "images": image_urls,
-        "image_url": image_urls[0],
-        "seed": job_input["seed"],
-    }
-
-    return results
 
 runpod.serverless.start({"handler": generate_image})
