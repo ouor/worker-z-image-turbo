@@ -13,17 +13,7 @@ INPUT_SCHEMA = {
         'required': False,
         'default': 1024
     },
-    'seed': {
-        'type': int,
-        'required': False,
-        'default': 43
-    },
-    'num_inference_steps': {
-        'type': int,
-        'required': False,
-        'default': 9
-    },
-    'guidance_scale': {
+    'cfg_scale': {
         'type': float,
         'required': False,
         'default': 1.0
