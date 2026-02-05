@@ -27,7 +27,8 @@ COPY requirements.txt /requirements.txt
 
 # Install dependencies with CMAKE_ARGS for CUDA support
 # We set SD_CUDA=ON for stable-diffusion.cpp
-RUN CMAKE_ARGS="-DSD_CUDA=ON" pip install -r /requirements.txt
+RUN CMAKE_ARGS="-DSD_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=86;89" \
+    pip install -r /requirements.txt
 
 # Copy necessary files
 COPY download_weights.py schemas.py handler.py /
