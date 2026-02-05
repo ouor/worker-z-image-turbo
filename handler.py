@@ -98,7 +98,7 @@ def generate_image(job):
             prompt=job_input["prompt"],
             height=job_input["height"],
             width=job_input["width"],
-            cfg_scale=job_input["guidance_scale"],
+            cfg_scale=job_input["cfg_scale"],
         )
         
         if not output_images:

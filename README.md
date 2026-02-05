@@ -22,9 +22,7 @@ The worker accepts the following parameters through the RunPod API:
 | `prompt`              | `str`   | `None`  | **Yes**  | The text description of the image you want to generate.                     |
 | `height`              | `int`   | `1024`  | No       | Height of the generated image (must be a multiple of 8).                    |
 | `width`               | `int`   | `1024`  | No       | Width of the generated image (must be a multiple of 8).                     |
-| `seed`                | `int`   | `43`    | No       | Random seed for reproducibility. Use `-1` for a random seed.                |
-| `num_inference_steps` | `int`   | `9`     | No       | Number of denoising steps. Turbo models usually need 4-10 steps.            |
-| `guidance_scale`      | `float` | `1.0`   | No       | Classifier-Free Guidance scale. Recommended `1.0` for Z-Image-Turbo.        |
+| `cfg_scale`           | `float` | `1.0`   | No       | Classifier-Free Guidance scale. Recommended `1.0` for Z-Image-Turbo.        |
 
 ---
 
@@ -36,9 +34,7 @@ The worker accepts the following parameters through the RunPod API:
     "prompt": "A futuristic Tokyo cityscape at night, neon lights, rainy street reflectons, cinematic lighting, 8k resolution",
     "height": 1024,
     "width": 1024,
-    "num_inference_steps": 9,
-    "guidance_scale": 1.0,
-    "seed": 12345
+    "cfg_scale": 1.0
   }
 }
 ```
