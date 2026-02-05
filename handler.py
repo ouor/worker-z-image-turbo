@@ -86,10 +86,7 @@ def generate_image(job):
         # Logical validation for dimensions
         if job_input['height'] % 8 != 0 or job_input['width'] % 8 != 0:
              return {"error": "Height and Width must be multiples of 8"}
-        
-        # Set default seed if not provided
-        if job_input["seed"] is None:
-            job_input["seed"] = -1 # -1 means random seed in stable-diffusion.cpp
+
 
         print(f"Generating image with prompt: {job_input['prompt']}")
         
